@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from DB_Connector import DBConnector
-
+from bson.objectid import ObjectId
+from bson.errors import InvalidId
 
 in_app_notifications_bp = Blueprint('in_app_notifications_bp', __name__)
 
-@in_app_notifications_bp.route('/h/api/v1/sdk/device/register', methods=['POST'])
+@in_app_notifications_bp.route('/api/v1/sdk/device/register', methods=['POST'])
 def register_device():
     """Register a device for in-app notifications
     ---
@@ -35,7 +36,6 @@ def register_device():
         500:
             description: Internal server error
     """
-    # Logic to register a device for in-app notifications
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -45,7 +45,7 @@ def register_device():
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['device_id'], str) or not isinstance(data['user_id'], str):
+    if not isinstance(data.get('device_id'), str) or not isinstance(data.get('user_id'), str):
         return jsonify({"error": "Invalid input types: device_id and user_id must be strings"}), 400
     
     device_id = data.get('device_id')
@@ -60,9 +60,6 @@ def register_device():
         "device_id": device_id,
         "user_id": user_id
     }}), 200
-    
-    
-    
 
 @in_app_notifications_bp.route('/api/v1/sdk/notifications', methods=['GET'])
 def get_notifications():
@@ -74,9 +71,8 @@ def get_notifications():
       - name: user_id
         in: query
         required: true
+        type: string
         description: Identifier for the user to retrieve notifications for
-        schema:
-          type: string
     responses:
         200:
             description: Notifications retrieved successfully
@@ -85,7 +81,6 @@ def get_notifications():
         500:
             description: Internal server error
     """
-    # Logic to retrieve in-app notifications for a user
     user_id = request.args.get('user_id')
     db = DBConnector.get_db()
     
@@ -97,9 +92,12 @@ def get_notifications():
     
     notifications = list(db.notifications.find({"user_id": user_id}))
     
+    # Convert ObjectId to string for JSON serialization
+    for note in notifications:
+        note['_id'] = str(note['_id'])
+    
     return jsonify({"message": "Notifications retrieved successfully", "notifications": notifications}), 200
-  
-  
+
 @in_app_notifications_bp.route('/api/v1/sdk/sync', methods=['POST'])
 def sync_notifications():
     """Sync in-app notifications for a user
@@ -127,7 +125,6 @@ def sync_notifications():
         500:
             description: Internal server error
     """
-    # Logic to sync in-app notifications for a user
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -137,16 +134,13 @@ def sync_notifications():
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['user_id'], str):
+    if not isinstance(data.get('user_id'), str):
         return jsonify({"error": "Invalid input type: user_id must be a string"}), 400
     
     user_id = data.get('user_id')
     
-    # Logic to sync notifications for the user (e.g., mark as read, fetch new notifications, etc.)
-    
     return jsonify({"message": "Notifications synced successfully", "user_id": user_id}), 200
-  
-  
+
 @in_app_notifications_bp.route('/api/v1/sdk/crash-report', methods=['POST'])
 def report_crash():
     """Report a crash for in-app notifications
@@ -169,7 +163,7 @@ def report_crash():
               description: Identifier for the user who experienced the crash
             crash_details:
               type: string
-              description: Details about the crash (e.g., error message, stack trace, etc.)
+              description: Details about the crash (e.g., error message, stack trace)
     responses:
         200:
             description: Crash reported successfully
@@ -178,7 +172,6 @@ def report_crash():
         500:
             description: Internal server error
     """
-    # Logic to report a crash for in-app notifications
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -188,7 +181,7 @@ def report_crash():
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['user_id'], str) or not isinstance(data['crash_details'], str):
+    if not isinstance(data.get('user_id'), str) or not isinstance(data.get('crash_details'), str):
         return jsonify({"error": "Invalid input types: user_id and crash_details must be strings"}), 400
     
     user_id = data.get('user_id')
@@ -203,7 +196,7 @@ def report_crash():
         "user_id": user_id,
         "crash_details": crash_details
     }}), 200
-    
+
 @in_app_notifications_bp.route('/api/v1/admin/campaigns', methods=['GET'])
 def get_campaigns():
     """Get all in-app notification campaigns
@@ -216,7 +209,6 @@ def get_campaigns():
         500:
             description: Internal server error
     """
-    # Logic to retrieve all in-app notification campaigns
     db = DBConnector.get_db()
     
     if db is None:
@@ -224,8 +216,12 @@ def get_campaigns():
     
     campaigns = list(db.campaigns.find())
     
+    # Convert ObjectId to string for JSON serialization
+    for camp in campaigns:
+        camp['_id'] = str(camp['_id'])
+    
     return jsonify({"message": "Campaigns retrieved successfully", "campaigns": campaigns}), 200
-  
+
 @in_app_notifications_bp.route('/api/v1/admin/campaigns', methods=['POST'])
 def create_campaign():
     """Create a new in-app notification campaign
@@ -257,7 +253,6 @@ def create_campaign():
         500:
             description: Internal server error
     """
-    # Logic to create a new in-app notification campaign
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -267,22 +262,23 @@ def create_campaign():
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['name'], str) or not isinstance(data['message'], str):
+    if not isinstance(data.get('name'), str) or not isinstance(data.get('message'), str):
         return jsonify({"error": "Invalid input types: name and message must be strings"}), 400
     
     name = data.get('name')
     message = data.get('message')
     
-    db.campaigns.insert_one({
+    result = db.campaigns.insert_one({
         "name": name,
         "message": message
     })
     
     return jsonify({"message": "Campaign created successfully", "campaign": {
+        "_id": str(result.inserted_id),
         "name": name,
         "message": message
     }}), 200
-    
+
 @in_app_notifications_bp.route('/api/v1/admin/campaigns/<campaign_id>', methods=['DELETE'])
 def delete_campaign(campaign_id):
     """Delete an in-app notification campaign
@@ -293,18 +289,18 @@ def delete_campaign(campaign_id):
       - name: campaign_id
         in: path
         required: true
+        type: string
         description: Identifier for the campaign to delete
-        schema:
-          type: string
     responses:
         200:
             description: Campaign deleted successfully
         400:
             description: Invalid input
+        404:
+            description: Campaign not found
         500:
             description: Internal server error
     """
-    # Logic to delete an in-app notification campaign
     db = DBConnector.get_db()
     
     if db is None:
@@ -312,14 +308,19 @@ def delete_campaign(campaign_id):
     
     if not campaign_id:
         return jsonify({"error": "Invalid input, campaign_id is required"}), 400
+        
+    try:
+        obj_id = ObjectId(campaign_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid campaign_id format"}), 400
     
-    result = db.campaigns.delete_one({"_id": campaign_id})
+    result = db.campaigns.delete_one({"_id": obj_id})
     
     if result.deleted_count == 0:
         return jsonify({"error": "Campaign not found"}), 404
     
     return jsonify({"message": "Campaign deleted successfully", "campaign_id": campaign_id}), 200
-  
+
 @in_app_notifications_bp.route('/api/v1/admin/campaigns/<campaign_id>/status', methods=['PATCH'])
 def update_campaign_status(campaign_id):
     """Update the status of an in-app notification campaign
@@ -330,10 +331,9 @@ def update_campaign_status(campaign_id):
       - name: campaign_id
         in: path
         required: true
+        type: string
         description: Identifier for the campaign to update
-        schema:
-          type: string
-      - name: status
+      - name: status_info
         in: body
         required: true
         description: New status for the campaign
@@ -344,16 +344,17 @@ def update_campaign_status(campaign_id):
           properties:
             status:
               type: string
-              description: New status for the campaign (e.g., active, paused, etc.)
+              description: New status for the campaign (e.g., active, paused)
     responses:
         200:
             description: Campaign status updated successfully
         400:
             description: Invalid input
+        404:
+            description: Campaign not found
         500:
             description: Internal server error
     """
-    # Logic to update the status of an in-app notification campaign
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -363,18 +364,23 @@ def update_campaign_status(campaign_id):
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['status'], str):
+    if not isinstance(data.get('status'), str):
         return jsonify({"error": "Invalid input type: status must be a string"}), 400
+        
+    try:
+        obj_id = ObjectId(campaign_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid campaign_id format"}), 400
     
     status = data.get('status')
     
-    result = db.campaigns.update_one({"_id": campaign_id}, {"$set": {"status": status}})
+    result = db.campaigns.update_one({"_id": obj_id}, {"$set": {"status": status}})
     
     if result.matched_count == 0:
         return jsonify({"error": "Campaign not found"}), 404
     
     return jsonify({"message": "Campaign status updated successfully", "campaign_id": campaign_id, "new_status": status}), 200
-  
+
 @in_app_notifications_bp.route('/api/v1/admin/campaigns/test-push', methods=['POST'])
 def send_test_push():
     """Send a test push notification for an in-app notification campaign
@@ -406,7 +412,6 @@ def send_test_push():
         500:
             description: Internal server error
     """ 
-    # Logic to send a test push notification for an in-app notification campaign
     data = request.get_json()
     db = DBConnector.get_db()
     
@@ -416,31 +421,29 @@ def send_test_push():
     if not data:
         return jsonify({"error": "Invalid input, JSON data is required"}), 400
     
-    if not isinstance(data['campaign_id'], str) or not isinstance(data['user_id'], str):
+    if not isinstance(data.get('campaign_id'), str) or not isinstance(data.get('user_id'), str):
         return jsonify({"error": "Invalid input types: campaign_id and user_id must be strings"}), 400
     
     campaign_id = data.get('campaign_id')
     user_id = data.get('user_id')
     
-    # Logic to send a test push notification to the user for the specified campaign
-    
     return jsonify({"message": "Test push notification sent successfully", "test_push_info": {
         "campaign_id": campaign_id,
         "user_id": user_id
     }}), 200
-    
+
 @in_app_notifications_bp.route('/api/v1/admin/stats/overview', methods=['GET'])
 def get_overview_stats():
     """Get overview statistics for in-app notifications
     ---
     tags:
       - In-App Notifications - portal
+    responses:
         200:
             description: Overview statistics retrieved successfully
         500:
             description: Internal server error 
     """
-    # Logic to retrieve overview statistics for in-app notifications (e.g., total notifications sent, total active campaigns, etc.)
     db = DBConnector.get_db()
     
     if db is None:
@@ -449,11 +452,10 @@ def get_overview_stats():
     stats = {
         "total_notifications_sent": db.notifications.count_documents({}),
         "total_active_campaigns": db.campaigns.count_documents({"status": "active"}),
-        # Add more statistics as needed
     }
     
     return jsonify({"message": "Overview statistics retrieved successfully", "stats": stats}), 200
-  
+
 @in_app_notifications_bp.route('/api/v1/admin/stats/campaign/<campaign_id>', methods=['GET'])
 def get_campaign_stats(campaign_id):
     """Get statistics for a specific in-app notification campaign
@@ -464,9 +466,8 @@ def get_campaign_stats(campaign_id):
       - name: campaign_id
         in: path
         required: true
+        type: string
         description: Identifier for the campaign to retrieve statistics for
-        schema:
-          type: string
     responses:
         200:
             description: Campaign statistics retrieved successfully
@@ -475,7 +476,6 @@ def get_campaign_stats(campaign_id):
         500:
             description: Internal server error
     """
-    # Logic to retrieve statistics for a specific in-app notification campaign (e.g., total notifications sent for the campaign, total clicks, etc.)
     db = DBConnector.get_db()
     
     if db is None:
@@ -483,13 +483,16 @@ def get_campaign_stats(campaign_id):
     
     if not campaign_id:
         return jsonify({"error": "Invalid input, campaign_id is required"}), 400
+        
+    try:
+        obj_id = ObjectId(campaign_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid campaign_id format"}), 400
     
     stats = {
+        # Using obj_id or campaign_id string depending on how you store foreign keys
         "total_notifications_sent": db.notifications.count_documents({"campaign_id": campaign_id}),
         "total_clicks": db.notifications.count_documents({"campaign_id": campaign_id, "clicked": True}),
-        # Add more statistics as needed
     }
     
-    return jsonify({"message": "Campaign statistics retrieved successfully", "campaign_id": campaign_id, "stats": stats}), 200.
-  
-  
+    return jsonify({"message": "Campaign statistics retrieved successfully", "campaign_id": campaign_id, "stats": stats}), 200
