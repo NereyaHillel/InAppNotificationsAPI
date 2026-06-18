@@ -60,6 +60,33 @@ def register_device():
         upsert=True 
     )
     
+    active_campaigns = list(db.campaigns.find({"status": "active"}))
+    
+    if active_campaigns:
+        notifications_to_insert = []
+        
+        for campaign in active_campaigns:
+            campaign_id = str(campaign['_id'])
+            
+            existing_notif = db.notifications.find_one({
+                "user_id": user_id,
+                "campaign_id": campaign_id
+            })
+            
+            if not existing_notif:
+                notifications_to_insert.append({
+                    "_id": uuid.uuid4().hex,
+                    "campaign_id": campaign_id,
+                    "user_id": user_id,
+                    "title": campaign.get("name"),
+                    "message": campaign.get("message"),
+                    "status": "delivered",
+                    "clicked": False
+                })
+                
+        if notifications_to_insert:
+            db.notifications.insert_many(notifications_to_insert)
+            
     return jsonify({"message": "Device registered successfully", "device": {
         "device_id": device_id,
         "user_id": user_id
@@ -452,6 +479,7 @@ def update_campaign_status(campaign_id):
                     "_id": uuid.uuid4().hex,
                     "campaign_id": campaign_id,
                     "user_id": uid,
+                    "title": campaign.get("name"),
                     "message": campaign.get("message"),
                     "status": "delivered",
                     "clicked": False
