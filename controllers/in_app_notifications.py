@@ -248,42 +248,84 @@ def report_crash():
     
 @in_app_notifications_bp.route('/api/v1/sdk/notifications/<id>/interact', methods=['POST'])
 def interact_with_notification(id):
-    """Mark a specific in-app notification as read
+    """
+    Mark a specific in-app notification as read and track clicks
     ---
     tags:
-      - In-App Notifications - SDK 
+      - SDK Notifications
+    summary: Track user interaction with a notification
+    description: Marks the notification status as 'read' so it won't be shown again. If the action is 'clicked', it also updates the click status to true for analytics tracking.
     parameters:
       - name: id
         in: path
-        required: true
         type: string
-        description: Identifier for the notification to mark as read
+        required: true
+        description: The unique hexadecimal or UUID string identifying the notification.
+        example: "08ecc229e9354d41a0cd634c59178e93"
+      - name: action
+        in: query
+        type: string
+        required: false
+        default: dismissed
+        enum: [clicked, dismissed]
+        description: The explicit interaction behavior executed by the client application.
+        example: "clicked"
     responses:
-        200:
-            description: Notification marked as read successfully
-        400:
-            description: Invalid input
-        404:
-            description: Notification not found
-        500:
-            description: Internal server error
+      200:
+        description: Interaction successfully recorded and state updated in the database.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Notification interaction tracked successfully"
+            notification_id:
+              type: string
+              example: "08ecc229e9354d41a0cd634c59178e93"
+            action:
+              type: string
+              example: "clicked"
+      400:
+        description: Bad Request. The notification ID parameter was missing or consisted only of whitespace.
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid input, notification ID is required in the path"
+      404:
+        description: Not Found. No notification document matched the provided ID string in the database collection.
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Notification not found"
     """
     db = _get_db()
+    
+    action = request.args.get('action', 'dismissed')
     
     if not id or not id.strip():
         abort(make_response(jsonify({"error": "Invalid input, notification ID is required in the path"}), 400))
     
+    update_data = {"status": "read"}
+    
+    if action == "clicked":
+        update_data["clicked"] = True
+        
     result = db.notifications.update_one(
         {"_id": id}, 
-        {"$set": {"status": "read"}}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:
         abort(make_response(jsonify({"error": "Notification not found"}), 404))
     
     return jsonify({
-        "message": "Notification marked as read", 
-        "notification_id": id
+        "message": "Notification interaction tracked successfully", 
+        "notification_id": id,
+        "action": action
     }), 200
 
 @in_app_notifications_bp.route('/api/v1/admin/campaigns', methods=['GET'])
