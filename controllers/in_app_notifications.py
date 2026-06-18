@@ -357,26 +357,45 @@ def create_campaign():
     
     name = data.get('name')
     message = data.get('message')
-    status = data.get('status')
-    position = data.get('position')
+    status = data.get('status') if data.get('status') else "draft"
+    position = data.get('position') if data.get('position') else "center"
     campaign_id = uuid.uuid4().hex
     
+    # 1. Save the campaign
     db.campaigns.insert_one({
         "_id": campaign_id,
         "name": name,
         "message": message,
-        "status": status if status else "draft",
-        "position": position if position else "center"
+        "status": status,
+        "position": position
     })
+    
+    if status == "active":
+        users = db.registered_devices.distinct("user_id")
+        
+        if users:
+            notifications_to_insert = []
+            for uid in users:
+                notifications_to_insert.append({
+                    "_id": uuid.uuid4().hex,
+                    "campaign_id": campaign_id,
+                    "user_id": uid,
+                    "title": name,
+                    "message": message,
+                    "status": "delivered",
+                    "clicked": False
+                })
+            
+            if notifications_to_insert:
+                db.notifications.insert_many(notifications_to_insert)
     
     return jsonify({"message": "Campaign created successfully", "campaign": {
         "_id": campaign_id,
         "name": name,
         "message": message,
-        "status": status if status else "draft",
-        "position": position if position else "center"
+        "status": status,
+        "position": position
     }}), 200
-
 @in_app_notifications_bp.route('/api/v1/admin/campaigns/<campaign_id>', methods=['DELETE'])
 def delete_campaign(campaign_id):
     """Delete an in-app notification campaign
