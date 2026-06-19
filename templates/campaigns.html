@@ -404,7 +404,6 @@
             setMessage('Refreshing campaigns...');
             const campaigns = await fetchCampaigns();
             renderCampaignRows(campaigns);
-            setMessage(`Loaded ${campaigns.length} campaign(s).`);
         }
 
         async function deleteCampaign(campaignId) {

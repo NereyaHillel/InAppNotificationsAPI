@@ -257,8 +257,6 @@
             <i class="fa-solid fa-gear"></i>
         </header>
 
-        <div id="dashboard-debug" class="debug-banner">Loading dashboard data...</div>
-
         <section class="kpi-grid">
             <div class="kpi-card highlight">
                 <div class="kpi-title">Total Sent:</div>
@@ -324,10 +322,6 @@
 
         function renderCampaignRows(campaigns) {
             const tbody = document.getElementById('campaign-table-body');
-            const debug = document.getElementById('dashboard-debug');
-            if (debug) {
-                debug.textContent = `Loaded ${campaigns.length} campaign rows.`;
-            }
             if (!tbody) return;
 
             if (!campaigns || campaigns.length === 0) {
@@ -466,11 +460,6 @@
 
             if (!payload) {
                 throw new Error(lastError || 'Unable to fetch dashboard data');
-            }
-
-            const debug = document.getElementById('dashboard-debug');
-            if (debug) {
-                debug.textContent = `Fetched dashboard data from ${successfulRoute} with ${payload.campaign_summary?.length || 0} campaign rows.`;
             }
 
             const campaigns = (payload.campaign_summary || []).slice();
