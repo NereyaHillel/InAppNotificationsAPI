@@ -195,13 +195,14 @@
         .table-container {
             background-color: var(--bg-white);
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .table-header,
         .table-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: minmax(240px, 2.5fr) minmax(140px, 1fr) minmax(180px, 1fr);
+            gap: 12px;
             padding: 16px 24px;
             font-size: 14px;
             align-items: center;
@@ -256,7 +257,16 @@
             visibility: hidden;
             transform: translateY(-6px);
             transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
-            z-index: 10;
+            z-index: 999;
+        }
+
+        .table-row {
+            overflow: visible;
+        }
+
+        .action-dropdown {
+            position: relative;
+            z-index: 1;
         }
 
         .action-menu.show {
@@ -398,11 +408,11 @@
                 <div class="table-header">
                     <div>Name</div>
                     <div>Status</div>
-                    <div>Actions</div>
+                    <div style="text-align:right;">Actions</div>
                 </div>
                 <div id="campaigns-table-body">
                     <div class="table-row">
-                        <div class="empty-placeholder">Loading campaigns…</div>
+                        <div class="empty-placeholder" style="grid-column: span 3; text-align:center;">Loading campaigns…</div>
                     </div>
                 </div>
             </div>
@@ -441,7 +451,7 @@
                 <div class="table-row">
                     <div>${campaign.name}</div>
                     <div>${campaignBadge(campaign.status)}</div>
-                    <div>
+                    <div style="display:flex; justify-content:flex-end;">
                         <div class="action-dropdown">
                             <button type="button" class="action-button" onclick="toggleActionMenu(event)">Actions <i class="fa-solid fa-caret-down"></i></button>
                             <div class="action-menu">
