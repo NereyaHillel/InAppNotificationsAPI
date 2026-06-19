@@ -5,7 +5,7 @@ import os
 
 import routes
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 swagger = Swagger(app)
 
 routes.initialize_routes(app)

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #111c1f;
+            --bg-sidebar: #0d1517;
+            --bg-card-dark: #172629;
+            --bg-white: #ffffff;
+            --accent-mint: #5ed3b0;
+            --text-light: #ffffff;
+            --text-gray: #a0aab2;
+            --text-dark: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--text-light);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-mint);
+            color: var(--bg-main);
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            overflow-y: auto;
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 20px;
+            font-size: 18px;
+            color: var(--text-gray);
+            padding-bottom: 10px;
+        }
+        
+        .header i {
+            cursor: pointer;
+        }
+
+        /* KPI Cards Area */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card-dark);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .kpi-card.highlight {
+            background-color: var(--accent-mint);
+            color: var(--bg-main);
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-gray);
+        }
+
+        .kpi-card.highlight .kpi-title {
+            color: var(--bg-main);
+            opacity: 0.8;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Charts Area */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-card {
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            border-radius: 12px;
+            padding: 24px;
+            height: 280px; /* Placeholder height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .chart-placeholder {
+            flex: 1;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* Table Area */
+        .table-container {
+            background-color: var(--bg-white);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .table-header {
+            background-color: var(--bg-card-dark);
+            color: var(--text-light);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 16px 24px;
+            font-size: 14px;
+            color: var(--text-dark);
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .empty-placeholder {
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-cube"></i> SDK
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Statistics</li>
+            <li class="nav-item"><i class="fa-solid fa-layer-group"></i> Dashboard</li>
+            <li class="nav-item"><i class="fa-regular fa-user"></i> Campaigns</li>
+            <li class="nav-item"><i class="fa-solid fa-bullhorn"></i> Audience</li>
+            <li class="nav-item"><i class="fa-solid fa-gear"></i> Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        
+        <header class="header">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-regular fa-circle-user"></i>
+            <i class="fa-solid fa-gear"></i>
+        </header>
+
+        <section class="kpi-grid">
+            <div class="kpi-card highlight">
+                <div class="kpi-title">Total Sent:</div>
+                <div class="kpi-value">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Open Rate:</div>
+                <div class="kpi-value">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Click Rate:</div>
+                <div class="kpi-value">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Active Campaigns:</div>
+                <div class="kpi-value">-</div>
+            </div>
+        </section>
+
+        <section class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Daily Notifications</div>
+                <div class="chart-placeholder">Bar Chart Area</div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Conversion Rate</div>
+                <div class="chart-placeholder">Line Chart Area</div>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <div class="table-header">
+                <div>Name</div>
+                <div>Status</div>
+                <div>Sent</div>
+                <div>Opened</div>
+                <div>CTR</div>
+                <div>CTR</div>
+            </div>
+            <div class="table-row">
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+            </div>
+            <div class="table-row">
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+                <div class="empty-placeholder">-</div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

@@ -73,6 +73,7 @@ def _distribute_campaigns(db, campaigns, user_ids):
 # ROUTES
 # ==========================================
 
+
 @in_app_notifications_bp.route('/api/v1/sdk/device/register', methods=['POST'])
 def register_device():
     """Register a device for in-app notifications
