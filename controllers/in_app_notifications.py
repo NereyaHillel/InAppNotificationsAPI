@@ -588,10 +588,19 @@ def get_dashboard_stats():
     campaigns = {camp["_id"]: camp for camp in db.campaigns.find({"_id": {"$in": campaign_ids}})}
 
     campaign_summary = []
+    chart_labels = []
+    chart_sent = []
+    chart_open_rate = []
+    chart_click_rate = []
+
     for stat in campaign_stats:
         campaign = campaigns.get(stat["_id"], {"name": "Unknown", "status": "unknown"})
         open_rate_campaign = round((stat["opened"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
         click_rate_campaign = round((stat["clicked"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
+        label = campaign.get("name", "Unknown")
+        if label in chart_labels:
+            label = f"{label} ({stat['_id'][:5]})"
+
         campaign_summary.append({
             "campaign_id": stat["_id"],
             "name": campaign.get("name", "Unknown"),
@@ -603,6 +612,11 @@ def get_dashboard_stats():
             "clicked": stat["clicked"]
         })
 
+        chart_labels.append(label)
+        chart_sent.append(stat["sent"])
+        chart_open_rate.append(open_rate_campaign)
+        chart_click_rate.append(click_rate_campaign)
+
     return jsonify({
         "message": "Dashboard statistics retrieved successfully",
         "stats": {
@@ -611,7 +625,13 @@ def get_dashboard_stats():
             "open_rate": open_rate,
             "click_rate": click_rate
         },
-        "campaign_summary": campaign_summary
+        "campaign_summary": campaign_summary,
+        "chart_data": {
+            "labels": chart_labels,
+            "sent": chart_sent,
+            "open_rates": chart_open_rate,
+            "click_rates": chart_click_rate
+        }
     }), 200
 
 @in_app_notifications_bp.route('/api/v1/admin/stats/campaign/<campaign_id>', methods=['GET'])

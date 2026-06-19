@@ -258,12 +258,12 @@
 
         <section class="charts-grid">
             <div class="chart-card">
-                <div class="chart-title">Daily Notifications</div>
-                <div class="chart-placeholder">Bar Chart Area</div>
+                <div class="chart-title">Campaign Notifications</div>
+                <canvas id="notification-bar-chart"></canvas>
             </div>
             <div class="chart-card">
                 <div class="chart-title">Conversion Rate</div>
-                <div class="chart-placeholder">Line Chart Area</div>
+                <canvas id="conversion-line-chart"></canvas>
             </div>
         </section>
 
@@ -290,6 +290,7 @@
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function formatPercent(value) {
             return value.toFixed(1) + '%';
@@ -320,11 +321,89 @@
             `).join('');
         }
 
+        let barChart = null;
+        let lineChart = null;
+
         function fillDashboardStats(stats) {
             document.getElementById('total-sent').textContent = stats.total_notifications_sent || 0;
             document.getElementById('open-rate').textContent = formatPercent(stats.open_rate || 0);
             document.getElementById('click-rate').textContent = formatPercent(stats.click_rate || 0);
             document.getElementById('active-campaigns').textContent = stats.total_active_campaigns || 0;
+        }
+
+        function buildCharts(chartData) {
+            const barCtx = document.getElementById('notification-bar-chart');
+            const lineCtx = document.getElementById('conversion-line-chart');
+
+            if (barChart) {
+                barChart.destroy();
+            }
+            if (lineChart) {
+                lineChart.destroy();
+            }
+
+            const labels = chartData.labels || [];
+            const sentData = chartData.sent || [];
+            const openData = chartData.open_rates || [];
+            const clickData = chartData.click_rates || [];
+
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Sent notifications',
+                        data: sentData,
+                        backgroundColor: 'rgba(94, 211, 176, 0.8)',
+                        borderColor: 'rgba(94, 211, 176, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#333' } },
+                        y: { beginAtZero: true, ticks: { color: '#333' } }
+                    }
+                }
+            });
+
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Open rate (%)',
+                            data: openData,
+                            borderColor: 'rgba(0, 123, 255, 0.9)',
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Click rate (%)',
+                            data: clickData,
+                            borderColor: 'rgba(255, 99, 132, 0.9)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#333' } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#333', callback: value => `${value}%` }
+                        }
+                    }
+                }
+            });
         }
 
         async function loadDashboardData() {
