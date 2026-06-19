@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Campaigns</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #111c1f;
+            --bg-sidebar: #0d1517;
+            --bg-card-dark: #172629;
+            --bg-white: #ffffff;
+            --accent-mint: #5ed3b0;
+            --accent-soft: #2d4e50;
+            --text-light: #ffffff;
+            --text-gray: #a0aab2;
+            --text-dark: #333333;
+            --border-gray: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--text-light);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-mint);
+            color: var(--bg-main);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 20px;
+            font-size: 18px;
+            color: var(--text-gray);
+            padding-bottom: 10px;
+        }
+
+        .header i {
+            cursor: pointer;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .page-description {
+            color: var(--text-gray);
+            margin-top: 8px;
+            max-width: 720px;
+            line-height: 1.6;
+        }
+
+        .section-card {
+            background-color: var(--bg-card-dark);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #2c3b41;
+            background: #14222a;
+            color: var(--text-light);
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 108px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .button {
+            border: none;
+            cursor: pointer;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .button.primary {
+            background-color: var(--accent-mint);
+            color: var(--bg-main);
+        }
+
+        .button.secondary {
+            background-color: #1f2f34;
+            color: var(--text-light);
+        }
+
+        .button.danger {
+            background-color: #d64553;
+            color: #fff;
+        }
+
+        .table-container {
+            background-color: var(--bg-white);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header,
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 16px 24px;
+            font-size: 14px;
+            align-items: center;
+        }
+
+        .table-header {
+            background-color: var(--bg-card-dark);
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .table-row {
+            color: var(--text-dark);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge.active {
+            background-color: #d4faeb;
+            color: #0d241b;
+        }
+
+        .badge.draft,
+        .badge.paused {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .empty-placeholder {
+            color: #999;
+        }
+
+        .status-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .message-box {
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: #112d31;
+            color: #a3f0d7;
+            font-size: 14px;
+            border: 1px solid #1b444b;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-cube"></i> SDK
+        </div>
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Statistics</a></li>
+            <li><a href="/Campaigns" class="nav-item active"><i class="fa-solid fa-layer-group"></i> Campaigns</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-regular fa-user"></i> Audience</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-solid fa-bullhorn"></i> Audience</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-regular fa-circle-user"></i>
+            <i class="fa-solid fa-gear"></i>
+        </header>
+
+        <div class="section-card">
+            <div>
+                <div class="page-title">Campaigns</div>
+                <div class="page-description">Manage all notification campaigns. Add new campaigns, delete existing campaigns, and activate or deactivate them directly from the admin panel.</div>
+            </div>
+
+            <div class="message-box" id="campaigns-message">Loading campaigns…</div>
+
+            <form id="campaign-form" class="form-grid">
+                <div class="input-group">
+                    <label for="campaign-name">Name</label>
+                    <input id="campaign-name" type="text" placeholder="Campaign name" required />
+                </div>
+                <div class="input-group">
+                    <label for="campaign-status">Status</label>
+                    <select id="campaign-status">
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="campaign-position">Position</label>
+                    <select id="campaign-position">
+                        <option value="center">Center</option>
+                        <option value="top">Top</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="button primary">Create Campaign</button>
+                </div>
+                <div class="input-group" style="grid-column: span 4;">
+                    <label for="campaign-message">Message</label>
+                    <textarea id="campaign-message" placeholder="Write the campaign message"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="section-card">
+            <div class="table-container">
+                <div class="table-header">
+                    <div>Name</div>
+                    <div>Status</div>
+                    <div>Sent</div>
+                    <div>Opened</div>
+                    <div>Open Rate</div>
+                    <div>Clicks</div>
+                    <div>Actions</div>
+                </div>
+                <div id="campaigns-table-body">
+                    <div class="table-row">
+                        <div class="empty-placeholder">Loading campaigns…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const messageBox = document.getElementById('campaigns-message');
+
+        function setMessage(text, type = 'info') {
+            if (!messageBox) return;
+            messageBox.textContent = text;
+            messageBox.style.backgroundColor = type === 'error' ? '#4d1218' : '#112d31';
+        }
+
+        function campaignBadge(status) {
+            const label = status || 'unknown';
+            const css = status === 'active' ? 'active' : 'draft';
+            return `<span class="badge ${css}">${label}</span>`;
+        }
+
+        function renderCampaignRows(campaigns) {
+            const body = document.getElementById('campaigns-table-body');
+            if (!body) return;
+
+            if (!campaigns.length) {
+                body.innerHTML = `
+                    <div class="table-row">
+                        <div class="empty-placeholder" style="grid-column: span 7; text-align:center;">No campaigns found.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            body.innerHTML = campaigns.map(campaign => `
+                <div class="table-row">
+                    <div>${campaign.name}</div>
+                    <div>${campaignBadge(campaign.status)}</div>
+                    <div>${campaign.sent ?? 0}</div>
+                    <div>${campaign.opened ?? 0}</div>
+                    <div>${campaign.open_rate != null ? campaign.open_rate.toFixed(1) + '%' : '0.0%'}</div>
+                    <div>${campaign.clicked ?? 0}</div>
+                    <div class="status-row">
+                        <button class="button secondary" onclick="toggleCampaignStatus('${campaign.campaign_id}', '${campaign.status}')">${campaign.status === 'active' ? 'Deactivate' : 'Activate'}</button>
+                        <button class="button danger" onclick="deleteCampaign('${campaign.campaign_id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function fetchCampaigns() {
+            try {
+                const response = await fetch('/api/v1/admin/campaigns');
+                if (!response.ok) throw new Error('Failed to load campaigns');
+                const data = await response.json();
+                return data.campaigns || [];
+            } catch (error) {
+                setMessage(error.message, 'error');
+                return [];
+            }
+        }
+
+        async function loadCampaigns() {
+            setMessage('Refreshing campaigns...');
+            const campaigns = await fetchCampaigns();
+            renderCampaignRows(campaigns);
+            setMessage(`Loaded ${campaigns.length} campaign(s).`);
+        }
+
+        async function deleteCampaign(campaignId) {
+            if (!confirm('Delete this campaign? This cannot be undone.')) return;
+            try {
+                const response = await fetch(`/api/v1/admin/campaigns/${campaignId}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Delete failed');
+                setMessage('Campaign deleted successfully.');
+                await loadCampaigns();
+            } catch (err) {
+                setMessage(err.message, 'error');
+            }
+        }
+
+        async function toggleCampaignStatus(campaignId, currentStatus) {
+            const nextStatus = currentStatus === 'active' ? 'draft' : 'active';
+            try {
+                const response = await fetch(`/api/v1/admin/campaigns/${campaignId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: nextStatus })
+                });
+                if (!response.ok) throw new Error('Status update failed');
+                setMessage(`Campaign set to ${nextStatus}.`);
+                await loadCampaigns();
+            } catch (err) {
+                setMessage(err.message, 'error');
+            }
+        }
+
+        document.getElementById('campaign-form')?.addEventListener('submit', async event => {
+            event.preventDefault();
+            const name = document.getElementById('campaign-name').value.trim();
+            const message = document.getElementById('campaign-message').value.trim();
+            const status = document.getElementById('campaign-status').value;
+            const position = document.getElementById('campaign-position').value;
+
+            if (!name || !message) {
+                setMessage('Name and message are required.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/admin/campaigns', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, message, status, position })
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(text || 'Create failed');
+                }
+                setMessage('Campaign created successfully.');
+                document.getElementById('campaign-form').reset();
+                await loadCampaigns();
+            } catch (err) {
+                setMessage(err.message, 'error');
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('campaign-form')?.reset();
+            loadCampaigns();
+        });
+    </script>
+</body>
+</html>
