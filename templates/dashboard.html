@@ -428,16 +428,37 @@
         }
 
         async function loadDashboardData() {
-            try {
-                const response = await fetch('/api/v1/admin/stats/dashboard');
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`Unable to load dashboard data (${response.status}): ${text}`);
+            const routes = ['/api/v1/admin/stats/dashboard', '/api/v1/admin/stats/overview'];
+            let payload = null;
+            let lastError = null;
+
+            for (const route of routes) {
+                try {
+                    const response = await fetch(route);
+                    if (!response.ok) {
+                        const text = await response.text();
+                        lastError = `Unable to load dashboard data from ${route} (${response.status}): ${text}`;
+                        continue;
+                    }
+                    payload = await response.json();
+                    break;
+                } catch (err) {
+                    lastError = `Fetch error for ${route}: ${err.message}`;
                 }
-                const payload = await response.json();
-                fillDashboardStats(payload.stats || {});
-                renderCampaignRows(payload.campaign_summary || []);
-                buildCharts(payload.chart_data || {});
+            }
+
+            if (!payload) {
+                throw new Error(lastError || 'Unable to fetch dashboard data');
+            }
+
+            fillDashboardStats(payload.stats || {});
+            renderCampaignRows(payload.campaign_summary || []);
+            buildCharts(payload.chart_data || {});
+        }
+
+        async function initDashboard() {
+            try {
+                await loadDashboardData();
             } catch (error) {
                 console.error('Dashboard load error:', error);
                 const tbody = document.getElementById('campaign-table-body');
@@ -451,7 +472,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body>
 </html>

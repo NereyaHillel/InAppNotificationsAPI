@@ -584,8 +584,8 @@ def get_dashboard_stats():
     ]
 
     campaign_stats = list(db.notifications.aggregate(pipeline))
-    campaign_ids = [stat["_id"] for stat in campaign_stats]
-    campaigns = {camp["_id"]: camp for camp in db.campaigns.find({"_id": {"$in": campaign_ids}})}
+    stats_by_campaign = {stat["_id"]: stat for stat in campaign_stats}
+    campaigns = list(db.campaigns.find())
 
     campaign_summary = []
     chart_labels = []
@@ -593,16 +593,15 @@ def get_dashboard_stats():
     chart_open_rate = []
     chart_click_rate = []
 
-    for stat in campaign_stats:
-        campaign = campaigns.get(stat["_id"], {"name": "Unknown", "status": "unknown"})
+    for campaign in campaigns:
+        campaign_id = str(campaign["_id"])
+        stat = stats_by_campaign.get(campaign_id, {"sent": 0, "opened": 0, "clicked": 0})
         open_rate_campaign = round((stat["opened"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
         click_rate_campaign = round((stat["clicked"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
-        label = campaign.get("name", "Unknown")
-        if label in chart_labels:
-            label = f"{label} ({stat['_id'][:5]})"
+        label = f"{campaign.get('name', 'Unknown')} ({campaign.get('status', 'unknown')})"
 
         campaign_summary.append({
-            "campaign_id": stat["_id"],
+            "campaign_id": campaign_id,
             "name": campaign.get("name", "Unknown"),
             "status": campaign.get("status", "unknown"),
             "sent": stat["sent"],
