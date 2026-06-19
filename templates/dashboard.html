@@ -331,7 +331,8 @@
             try {
                 const response = await fetch('/api/v1/admin/stats/dashboard');
                 if (!response.ok) {
-                    throw new Error('Unable to load dashboard data');
+                    const text = await response.text();
+                    throw new Error(`Unable to load dashboard data (${response.status}): ${text}`);
                 }
                 const payload = await response.json();
                 fillDashboardStats(payload.stats || {});
@@ -342,7 +343,7 @@
                 if (tbody) {
                     tbody.innerHTML = `
                         <div class="table-row">
-                            <div class="empty-placeholder" style="grid-column: span 6; text-align:center;">Unable to load data</div>
+                            <div class="empty-placeholder" style="grid-column: span 6; text-align:center;">Unable to load data: ${error.message}</div>
                         </div>
                     `;
                 }

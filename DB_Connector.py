@@ -1,16 +1,27 @@
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
 from pymongo import MongoClient
 import os
 
-DB_CONNECTION_STRING=os.getenv('DB_CONNECTION_STRING')
-DB_NAME=os.getenv('DB_NAME')
-DB_USER=os.getenv('DB_USER')
-DB_PASSWORD=os.getenv('DB_PASSWORD')
+if load_dotenv:
+    load_dotenv()
+else:
+    print('Warning: python-dotenv is not installed; .env will not be loaded automatically.')
 
-MONGODB_URI = f"mongodb+srv://{DB_USER}:{DB_PASSWORD}@{DB_CONNECTION_STRING}/{DB_NAME}"
+DB_CONNECTION_STRING = os.getenv('DB_CONNECTION_STRING')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+MONGODB_URI = os.getenv('MONGODB_URI')
 
-
-load_dotenv()
+if not MONGODB_URI:
+    if DB_USER and DB_PASSWORD and DB_CONNECTION_STRING and DB_NAME:
+        MONGODB_URI = f"mongodb+srv://{DB_USER}:{DB_PASSWORD}@{DB_CONNECTION_STRING}/{DB_NAME}"
+    else:
+        print('Warning: one or more MongoDB environment variables are missing. Set MONGODB_URI or DB_USER, DB_PASSWORD, DB_CONNECTION_STRING, and DB_NAME.')
 
 class DBConnector:
     __db = None
@@ -18,13 +29,16 @@ class DBConnector:
     @staticmethod
     def initialize_db():
         if DBConnector.__db is None:
+            if not MONGODB_URI:
+                print('Database initialization failed: missing MongoDB URI.')
+                return None
+
             try:
                 client = MongoClient(MONGODB_URI)
                 DBConnector.__db = client[DB_NAME]
                 # Test the connection by listing collections
                 DBConnector.__db.list_collection_names()
                 print("Database connection established successfully.")
-                DBConnector.__db = client[DB_NAME]
             except Exception as e:
                 print(f"Failed to connect to the database: {e}")
                 DBConnector.__db = None
