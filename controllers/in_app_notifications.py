@@ -559,6 +559,61 @@ def get_overview_stats():
     }
     return jsonify({"message": "Overview statistics retrieved successfully", "stats": stats}), 200
 
+@in_app_notifications_bp.route('/api/v1/admin/stats/dashboard', methods=['GET'])
+def get_dashboard_stats():
+    """Get dashboard statistics and campaign summary for the admin dashboard"""
+    db = _get_db()
+
+    total_notifications_sent = db.notifications.count_documents({})
+    total_active_campaigns = db.campaigns.count_documents({"status": "active"})
+    total_opened = db.notifications.count_documents({"status": "read"})
+    total_clicked = db.notifications.count_documents({"clicked": True})
+
+    open_rate = round((total_opened / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
+    click_rate = round((total_clicked / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
+
+    pipeline = [
+        {"$group": {
+            "_id": "$campaign_id",
+            "sent": {"$sum": 1},
+            "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
+            "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}}
+        }},
+        {"$sort": {"sent": -1}},
+        {"$limit": 4}
+    ]
+
+    campaign_stats = list(db.notifications.aggregate(pipeline))
+    campaign_ids = [stat["_id"] for stat in campaign_stats]
+    campaigns = {camp["_id"]: camp for camp in db.campaigns.find({"_id": {"$in": campaign_ids}})}
+
+    campaign_summary = []
+    for stat in campaign_stats:
+        campaign = campaigns.get(stat["_id"], {"name": "Unknown", "status": "unknown"})
+        open_rate_campaign = round((stat["opened"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
+        click_rate_campaign = round((stat["clicked"] / stat["sent"]) * 100, 1) if stat["sent"] else 0.0
+        campaign_summary.append({
+            "campaign_id": stat["_id"],
+            "name": campaign.get("name", "Unknown"),
+            "status": campaign.get("status", "unknown"),
+            "sent": stat["sent"],
+            "opened": stat["opened"],
+            "open_rate": open_rate_campaign,
+            "click_rate": click_rate_campaign,
+            "clicked": stat["clicked"]
+        })
+
+    return jsonify({
+        "message": "Dashboard statistics retrieved successfully",
+        "stats": {
+            "total_notifications_sent": total_notifications_sent,
+            "total_active_campaigns": total_active_campaigns,
+            "open_rate": open_rate,
+            "click_rate": click_rate
+        },
+        "campaign_summary": campaign_summary
+    }), 200
+
 @in_app_notifications_bp.route('/api/v1/admin/stats/campaign/<campaign_id>', methods=['GET'])
 def get_campaign_stats(campaign_id):
     """Get statistics for a specific in-app notification campaign

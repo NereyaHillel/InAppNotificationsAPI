@@ -240,19 +240,19 @@
         <section class="kpi-grid">
             <div class="kpi-card highlight">
                 <div class="kpi-title">Total Sent:</div>
-                <div class="kpi-value">-</div>
+                <div class="kpi-value" id="total-sent">-</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Open Rate:</div>
-                <div class="kpi-value">-</div>
+                <div class="kpi-value" id="open-rate">-</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Click Rate:</div>
-                <div class="kpi-value">-</div>
+                <div class="kpi-value" id="click-rate">-</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Active Campaigns:</div>
-                <div class="kpi-value">-</div>
+                <div class="kpi-value" id="active-campaigns">-</div>
             </div>
         </section>
 
@@ -273,28 +273,83 @@
                 <div>Status</div>
                 <div>Sent</div>
                 <div>Opened</div>
-                <div>CTR</div>
-                <div>CTR</div>
+                <div>Open Rate</div>
+                <div>Clicks</div>
             </div>
-            <div class="table-row">
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-            </div>
-            <div class="table-row">
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
-                <div class="empty-placeholder">-</div>
+            <div id="campaign-table-body">
+                <div class="table-row">
+                    <div class="empty-placeholder">Loading...</div>
+                    <div class="empty-placeholder">Loading...</div>
+                    <div class="empty-placeholder">Loading...</div>
+                    <div class="empty-placeholder">Loading...</div>
+                    <div class="empty-placeholder">Loading...</div>
+                    <div class="empty-placeholder">Loading...</div>
+                </div>
             </div>
         </section>
 
     </main>
 
+    <script>
+        function formatPercent(value) {
+            return value.toFixed(1) + '%';
+        }
+
+        function renderCampaignRows(campaigns) {
+            const tbody = document.getElementById('campaign-table-body');
+            if (!tbody) return;
+
+            if (!campaigns || campaigns.length === 0) {
+                tbody.innerHTML = `
+                    <div class="table-row">
+                        <div class="empty-placeholder" style="grid-column: span 6; text-align:center;">No campaign data available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = campaigns.map(campaign => `
+                <div class="table-row">
+                    <div>${campaign.name}</div>
+                    <div>${campaign.status}</div>
+                    <div>${campaign.sent}</div>
+                    <div>${campaign.opened}</div>
+                    <div>${formatPercent(campaign.open_rate)}</div>
+                    <div>${campaign.clicked}</div>
+                </div>
+            `).join('');
+        }
+
+        function fillDashboardStats(stats) {
+            document.getElementById('total-sent').textContent = stats.total_notifications_sent || 0;
+            document.getElementById('open-rate').textContent = formatPercent(stats.open_rate || 0);
+            document.getElementById('click-rate').textContent = formatPercent(stats.click_rate || 0);
+            document.getElementById('active-campaigns').textContent = stats.total_active_campaigns || 0;
+        }
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/v1/admin/stats/dashboard');
+                if (!response.ok) {
+                    throw new Error('Unable to load dashboard data');
+                }
+                const payload = await response.json();
+                fillDashboardStats(payload.stats || {});
+                renderCampaignRows(payload.campaign_summary || []);
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                const tbody = document.getElementById('campaign-table-body');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <div class="table-row">
+                            <div class="empty-placeholder" style="grid-column: span 6; text-align:center;">Unable to load data</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
 </body>
 </html>
