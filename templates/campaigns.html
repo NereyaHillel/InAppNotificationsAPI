@@ -201,10 +201,11 @@
         .table-header,
         .table-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr;
             padding: 16px 24px;
             font-size: 14px;
             align-items: center;
+            position: relative;
         }
 
         .table-header {
@@ -220,6 +221,75 @@
 
         .table-row:last-child {
             border-bottom: none;
+        }
+
+        .action-dropdown {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .action-button {
+            border: 1px solid #2c3b41;
+            background: #1f2f34;
+            color: var(--text-light);
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .action-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background: #0d1517;
+            border: 1px solid #233136;
+            border-radius: 12px;
+            min-width: 180px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+            z-index: 10;
+        }
+
+        .action-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .action-item {
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .action-item:hover {
+            background: rgba(94,211,176,0.12);
+        }
+
+        .action-item.activate {
+            color: #38bdf8;
+        }
+
+        .action-item.deactivate {
+            color: #f59e0b;
+        }
+
+        .action-item.delete {
+            color: #ef4444;
         }
 
         .badge {
@@ -328,10 +398,6 @@
                 <div class="table-header">
                     <div>Name</div>
                     <div>Status</div>
-                    <div>Sent</div>
-                    <div>Opened</div>
-                    <div>Open Rate</div>
-                    <div>Clicks</div>
                     <div>Actions</div>
                 </div>
                 <div id="campaigns-table-body">
@@ -365,7 +431,7 @@
             if (!campaigns.length) {
                 body.innerHTML = `
                     <div class="table-row">
-                        <div class="empty-placeholder" style="grid-column: span 7; text-align:center;">No campaigns found.</div>
+                        <div class="empty-placeholder" style="grid-column: span 3; text-align:center;">No campaigns found.</div>
                     </div>
                 `;
                 return;
@@ -375,13 +441,14 @@
                 <div class="table-row">
                     <div>${campaign.name}</div>
                     <div>${campaignBadge(campaign.status)}</div>
-                    <div>${campaign.sent ?? 0}</div>
-                    <div>${campaign.opened ?? 0}</div>
-                    <div>${campaign.open_rate != null ? campaign.open_rate.toFixed(1) + '%' : '0.0%'}</div>
-                    <div>${campaign.clicked ?? 0}</div>
-                    <div class="status-row">
-                        <button class="button secondary" onclick="toggleCampaignStatus('${campaign.campaign_id}', '${campaign.status}')">${campaign.status === 'active' ? 'Deactivate' : 'Activate'}</button>
-                        <button class="button danger" onclick="deleteCampaign('${campaign.campaign_id}')">Delete</button>
+                    <div>
+                        <div class="action-dropdown">
+                            <button type="button" class="action-button" onclick="toggleActionMenu(event)">Actions <i class="fa-solid fa-caret-down"></i></button>
+                            <div class="action-menu">
+                                <button type="button" class="action-item ${campaign.status === 'active' ? 'deactivate' : 'activate'}" onclick="toggleCampaignStatus('${campaign._id}', '${campaign.status}')">${campaign.status === 'active' ? 'Deactivate' : 'Activate'}</button>
+                                <button type="button" class="action-item delete" onclick="deleteCampaign('${campaign._id}')">Delete</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -398,6 +465,22 @@
                 return [];
             }
         }
+
+        function toggleActionMenu(event) {
+            event.stopPropagation();
+            const button = event.currentTarget;
+            const menu = button.nextElementSibling;
+            if (!menu) return;
+
+            document.querySelectorAll('.action-menu.show').forEach(item => {
+                if (item !== menu) item.classList.remove('show');
+            });
+            menu.classList.toggle('show');
+        }
+
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.action-menu.show').forEach(menu => menu.classList.remove('show'));
+        });
 
         async function loadCampaigns() {
             const campaigns = await fetchCampaigns();
