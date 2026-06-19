@@ -196,32 +196,75 @@
             background-color: var(--bg-white);
             border-radius: 12px;
             overflow: visible;
+            padding: 20px;
         }
 
-        .table-header,
-        .table-row {
-            display: grid;
-            grid-template-columns: minmax(240px, 2.5fr) minmax(140px, 1fr) minmax(180px, 1fr);
-            gap: 12px;
-            padding: 16px 24px;
-            font-size: 14px;
+        .campaign-heading {
+            display: flex;
             align-items: center;
-            position: relative;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
         }
 
-        .table-header {
-            background-color: var(--bg-card-dark);
-            color: var(--text-light);
-            font-weight: 600;
-        }
-
-        .table-row {
+        .campaign-title {
+            font-size: 18px;
+            font-weight: 700;
             color: var(--text-dark);
-            border-bottom: 1px solid #f0f0f0;
         }
 
-        .table-row:last-child {
-            border-bottom: none;
+        .campaign-subtitle {
+            color: var(--text-gray);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .campaign-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .campaign-card {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            padding: 22px;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            color: var(--text-dark);
+            box-shadow: 0 14px 35px rgba(15, 23, 42, 0.04);
+        }
+
+        .campaign-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .campaign-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #111827;
+            line-height: 1.3;
+        }
+
+        .campaign-card-status {
+            justify-self: start;
+        }
+
+        .campaign-card-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .campaign-empty {
+            padding: 36px 0;
+            text-align: center;
+            color: #6b7280;
+            font-size: 15px;
         }
 
         .action-dropdown {
@@ -407,15 +450,14 @@
 
         <div class="section-card">
             <div class="table-container">
-                <div class="table-header">
-                    <div>Name</div>
-                    <div>Status</div>
-                    <div style="text-align:right;">Actions</div>
-                </div>
-                <div id="campaigns-table-body">
-                    <div class="table-row">
-                        <div class="empty-placeholder" style="grid-column: span 3; text-align:center;">Loading campaigns…</div>
+                <div class="campaign-heading">
+                    <div>
+                        <div class="campaign-title">All campaigns</div>
+                        <div class="campaign-subtitle">Review active and draft campaigns with one-click actions.</div>
                     </div>
+                </div>
+                <div class="campaign-grid" id="campaigns-table-body">
+                    <div class="campaign-empty">Loading campaigns…</div>
                 </div>
             </div>
         </div>
@@ -442,18 +484,18 @@
 
             if (!campaigns.length) {
                 body.innerHTML = `
-                    <div class="table-row">
-                        <div class="empty-placeholder" style="grid-column: span 3; text-align:center;">No campaigns found.</div>
-                    </div>
+                    <div class="campaign-empty">No campaigns found.</div>
                 `;
                 return;
             }
 
             body.innerHTML = campaigns.map(campaign => `
-                <div class="table-row">
-                    <div>${campaign.name}</div>
-                    <div>${campaignBadge(campaign.status)}</div>
-                    <div style="display:flex; justify-content:flex-end;">
+                <div class="campaign-card">
+                    <div class="campaign-card-header">
+                        <div class="campaign-name">${campaign.name}</div>
+                        <div class="campaign-card-status">${campaignBadge(campaign.status)}</div>
+                    </div>
+                    <div class="campaign-card-footer">
                         <div class="action-dropdown">
                             <button type="button" class="action-button" onclick="toggleActionMenu(event)">Actions <i class="fa-solid fa-caret-down"></i></button>
                             <div class="action-menu">
