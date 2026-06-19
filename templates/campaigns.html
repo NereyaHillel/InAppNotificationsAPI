@@ -290,8 +290,6 @@
                 <div class="page-description">Manage all notification campaigns. Add new campaigns, delete existing campaigns, and activate or deactivate them directly from the admin panel.</div>
             </div>
 
-            <div class="message-box" id="campaigns-message">Loading campaigns…</div>
-
             <form id="campaign-form" class="form-grid">
                 <div class="input-group">
                     <label for="campaign-name">Name</label>
@@ -345,13 +343,6 @@
     </main>
 
     <script>
-        const messageBox = document.getElementById('campaigns-message');
-
-        function setMessage(text, type = 'info') {
-            if (!messageBox) return;
-            messageBox.textContent = text;
-            messageBox.style.backgroundColor = type === 'error' ? '#4d1218' : '#112d31';
-        }
 
         function campaignBadge(status) {
             const label = status || 'unknown';
@@ -400,11 +391,6 @@
             }
         }
 
-        async function loadCampaigns() {
-            setMessage('Refreshing campaigns...');
-            const campaigns = await fetchCampaigns();
-            renderCampaignRows(campaigns);
-        }
 
         async function deleteCampaign(campaignId) {
             if (!confirm('Delete this campaign? This cannot be undone.')) return;
