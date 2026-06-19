@@ -242,6 +242,8 @@
             gap: 8px;
             font-size: 13px;
             font-weight: 600;
+            position: relative;
+            z-index: 1;
         }
 
         .action-menu {
@@ -257,7 +259,7 @@
             visibility: hidden;
             transform: translateY(-6px);
             transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
-            z-index: 999;
+            z-index: 1001;
         }
 
         .table-row {
@@ -266,7 +268,7 @@
 
         .action-dropdown {
             position: relative;
-            z-index: 1;
+            z-index: 1000;
         }
 
         .action-menu.show {
