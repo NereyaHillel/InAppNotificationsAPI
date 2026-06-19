@@ -540,28 +540,105 @@ def send_test_push():
         }
     }), 200
 
-@in_app_notifications_bp.route('/api/v1/admin/stats/overview', methods=['GET'])
-def get_overview_stats():
-    """Get overview statistics for in-app notifications
-    ---
-    tags:
-      - In-App Notifications - portal
-    responses:
-        200:
-            description: Overview statistics retrieved successfully
-        500:
-            description: Internal server error 
-    """
-    db = _get_db()
-    stats = {
-        "total_notifications_sent": db.notifications.count_documents({}),
-        "total_active_campaigns": db.campaigns.count_documents({"status": "active"}),
-    }
-    return jsonify({"message": "Overview statistics retrieved successfully", "stats": stats}), 200
 
 @in_app_notifications_bp.route('/api/v1/admin/stats/dashboard', methods=['GET'])
 def get_dashboard_stats():
-    """Get dashboard statistics and campaign summary for the admin dashboard"""
+    """
+    Get dashboard statistics and campaign summary for the admin dashboard
+    ---
+    tags:
+      - In-App Notifications - portal
+    summary: Retrieve overall campaign analytics and chart data
+    description: Returns aggregated dashboard metrics along with campaign-level summary and chart datasets for dashboard rendering.
+    responses:
+      200:
+        description: Dashboard statistics retrieved successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Dashboard statistics retrieved successfully
+            stats:
+              type: object
+              properties:
+                total_notifications_sent:
+                  type: integer
+                  example: 12
+                total_active_campaigns:
+                  type: integer
+                  example: 3
+                open_rate:
+                  type: number
+                  format: float
+                  example: 52.4
+                click_rate:
+                  type: number
+                  format: float
+                  example: 18.7
+            campaign_summary:
+              type: array
+              items:
+                type: object
+                properties:
+                  campaign_id:
+                    type: string
+                    example: '868c0fe6d66346d0a40378ca8a0ae9e4'
+                  name:
+                    type: string
+                    example: 'My First Test Campaign'
+                  status:
+                    type: string
+                    example: 'draft'
+                  sent:
+                    type: integer
+                    example: 5
+                  opened:
+                    type: integer
+                    example: 3
+                  open_rate:
+                    type: number
+                    format: float
+                    example: 60.0
+                  click_rate:
+                    type: number
+                    format: float
+                    example: 20.0
+                  clicked:
+                    type: integer
+                    example: 1
+            chart_data:
+              type: object
+              properties:
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  example: ['Campaign A (active)', 'Campaign B (draft)']
+                sent:
+                  type: array
+                  items:
+                    type: integer
+                  example: [3, 0]
+                open_rates:
+                  type: array
+                  items:
+                    type: number
+                  example: [33.3, 0.0]
+                click_rates:
+                  type: array
+                  items:
+                    type: number
+                  example: [0.0, 0.0]
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Database connection failed
+    """
     db = _get_db()
 
     total_notifications_sent = db.notifications.count_documents({})

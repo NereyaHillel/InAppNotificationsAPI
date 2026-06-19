@@ -106,6 +106,16 @@
             cursor: pointer;
         }
 
+        .debug-banner {
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #1e2f34;
+            color: #c7f7e9;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
         /* KPI Cards Area */
         .kpi-grid {
             display: grid;
@@ -248,6 +258,8 @@
             <i class="fa-solid fa-gear"></i>
         </header>
 
+        <div id="dashboard-debug" class="debug-banner">Loading dashboard data...</div>
+
         <section class="kpi-grid">
             <div class="kpi-card highlight">
                 <div class="kpi-title">Total Sent:</div>
@@ -313,6 +325,10 @@
 
         function renderCampaignRows(campaigns) {
             const tbody = document.getElementById('campaign-table-body');
+            const debug = document.getElementById('dashboard-debug');
+            if (debug) {
+                debug.textContent = `Loaded ${campaigns.length} campaign rows.`;
+            }
             if (!tbody) return;
 
             if (!campaigns || campaigns.length === 0) {
@@ -431,6 +447,7 @@
             const routes = ['/api/v1/admin/stats/dashboard', '/api/v1/admin/stats/overview'];
             let payload = null;
             let lastError = null;
+            let successfulRoute = null;
 
             for (const route of routes) {
                 try {
@@ -441,6 +458,7 @@
                         continue;
                     }
                     payload = await response.json();
+                    successfulRoute = route;
                     break;
                 } catch (err) {
                     lastError = `Fetch error for ${route}: ${err.message}`;
@@ -451,8 +469,21 @@
                 throw new Error(lastError || 'Unable to fetch dashboard data');
             }
 
+            const debug = document.getElementById('dashboard-debug');
+            if (debug) {
+                debug.textContent = `Fetched dashboard data from ${successfulRoute} with ${payload.campaign_summary?.length || 0} campaign rows.`;
+            }
+
+            const campaigns = (payload.campaign_summary || []).slice();
+            campaigns.sort((a, b) => {
+                if (a.status !== b.status) {
+                    return a.status === 'active' ? -1 : b.status === 'active' ? 1 : 0;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
             fillDashboardStats(payload.stats || {});
-            renderCampaignRows(payload.campaign_summary || []);
+            renderCampaignRows(campaigns);
             buildCharts(payload.chart_data || {});
         }
 
