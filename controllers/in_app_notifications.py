@@ -649,7 +649,7 @@ def get_dashboard_stats():
         "_id": None,
         "total": {"$sum": 1},
         "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
-        "clicked": {"$sum": {"$cond": ["$clicked", 1, 0]}}
+        "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}}
     }}]))
     ns = notif_agg[0] if notif_agg else {"total": 0, "opened": 0, "clicked": 0}
     total_notifications_sent = ns["total"]
