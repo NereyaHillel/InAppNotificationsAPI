@@ -1,6 +1,9 @@
 import uuid
+import logging
 from flask import Blueprint, request, jsonify, abort, make_response
 from DB_Connector import DBConnector
+
+logger = logging.getLogger(__name__)
 
 in_app_notifications_bp = Blueprint('in_app_notifications_bp', __name__)
 
@@ -110,24 +113,24 @@ def register_device():
             description: Internal server error
     """
     db = _get_db()
-    data = _get_valid_json(['device_id', 'user_id'])
+    data = _get_valid_json(['device_id', 'user_id', 'device_name'])
     
+    device_name = data.get('device_name')
     device_id = data.get('device_id')
     user_id = data.get('user_id')
     
     db.registered_devices.update_one(
         {"device_id": device_id}, 
-        {"$set": {"user_id": user_id, "last_active": "..."}}, 
+        {"$set": {"device_name": device_name, "user_id": user_id, "last_active": "..."}}, 
         upsert=True 
     )
+    
+    logger.info(f"Device registered: user_id={user_id}, device_id={device_id}")
     
     active_campaigns = list(db.campaigns.find({"status": "active"}))
     _distribute_campaigns(db, active_campaigns, [user_id])
             
-    return jsonify({"message": "Device registered successfully", "device": {
-        "device_id": device_id,
-        "user_id": user_id
-    }}), 200
+    return jsonify({"message": "Device registered successfully"}), 200
 
 @in_app_notifications_bp.route('/api/v1/sdk/notifications', methods=['GET'])
 def get_notifications():
@@ -161,8 +164,11 @@ def get_notifications():
     }
     
     notifications = list(db.notifications.find(query))
+    # Ensure response format matches SDK expectations
     for note in notifications:
         note['_id'] = str(note['_id'])
+    
+    logger.info(f"Retrieved {len(notifications)} unread notifications for user_id={user_id}")
     
     return jsonify({
         "message": "Unread notifications retrieved successfully", 
@@ -237,15 +243,16 @@ def report_crash():
     user_id = data.get('user_id')
     crash_details = data.get('crash_details')
     
+    crash_id = uuid.uuid4().hex
     db.crash_reports.insert_one({
+        "_id": crash_id,
         "user_id": user_id,
         "crash_details": crash_details
     })
     
-    return jsonify({"message": "Crash reported successfully", "crash_report": {
-        "user_id": user_id,
-        "crash_details": crash_details
-    }}), 200
+    logger.error(f"Crash reported by user_id={user_id}, crash_id={crash_id}")
+    
+    return jsonify({"message": "Crash reported successfully"}), 200
     
 @in_app_notifications_bp.route('/api/v1/sdk/notifications/<id>/interact', methods=['POST'])
 def interact_with_notification(id):
@@ -280,12 +287,6 @@ def interact_with_notification(id):
             message:
               type: string
               example: "Notification interaction tracked successfully"
-            notification_id:
-              type: string
-              example: "08ecc229e9354d41a0cd634c59178e93"
-            action:
-              type: string
-              example: "clicked"
       400:
         description: Bad Request. The notification ID parameter was missing or consisted only of whitespace.
         schema:
@@ -323,10 +324,10 @@ def interact_with_notification(id):
     if result.matched_count == 0:
         abort(make_response(jsonify({"error": "Notification not found"}), 404))
     
+    logger.info(f"Notification interaction tracked: notification_id={id}, action={action}")
+    
     return jsonify({
-        "message": "Notification interaction tracked successfully", 
-        "notification_id": id,
-        "action": action
+        "message": "Notification interaction tracked successfully"
     }), 200
 
 @in_app_notifications_bp.route('/api/v1/admin/campaigns', methods=['GET'])
