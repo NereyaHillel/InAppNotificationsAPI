@@ -41,12 +41,27 @@ class DBConnector:
                 DBConnector.__db = client[DB_NAME]
                 # Test the connection by listing collections
                 DBConnector.__db.list_collection_names()
+                DBConnector._ensure_indexes(DBConnector.__db)
                 logger.info("Database connection established successfully.")
             except Exception as e:
                 logger.error(f"Failed to connect to the database: {e}")
                 DBConnector.__db = None
         return DBConnector.__db
     
+    @staticmethod
+    def _ensure_indexes(db):
+        from pymongo import ASCENDING
+        # Compound index: main SDK read query (user_id + status)
+        db.notifications.create_index([("user_id", ASCENDING), ("status", ASCENDING)])
+        # Compound index: dedup check in _distribute_campaigns
+        db.notifications.create_index([("campaign_id", ASCENDING), ("user_id", ASCENDING)])
+        # TTL index: auto-delete read notifications after their expires_at date
+        db.notifications.create_index("expires_at", expireAfterSeconds=0, sparse=True)
+        # TTL index: auto-delete crash reports after 30 days
+        db.crash_reports.create_index("created_at", expireAfterSeconds=2592000)
+        # Index: campaign status filter
+        db.campaigns.create_index("status")
+
     @staticmethod
     def get_db():
         if DBConnector.__db is None:

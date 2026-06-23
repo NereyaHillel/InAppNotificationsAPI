@@ -1,5 +1,6 @@
 import uuid
 import logging
+import datetime
 from flask import Blueprint, request, jsonify, abort, make_response
 from DB_Connector import DBConnector
 
@@ -62,8 +63,6 @@ def _distribute_campaigns(db, campaigns, user_ids):
                     "_id": uuid.uuid4().hex,
                     "campaign_id": cid,
                     "user_id": uid,
-                    "title": campaign.get("name"),
-                    "message": campaign.get("message"),
                     "status": "delivered",
                     "clicked": False
                 })
@@ -91,13 +90,13 @@ def register_device():
         schema:
           type: object
           required:
-            - device_name
+            - device_model
             - device_id
             - user_id
           properties:
-            device_name:
+            device_model:
               type: string
-              description: Name of the device
+              description: Model of the device
             device_id:
               type: string
               description: Unique identifier for the device
@@ -113,15 +112,15 @@ def register_device():
             description: Internal server error
     """
     db = _get_db()
-    data = _get_valid_json(['device_id', 'user_id', 'device_name'])
+    data = _get_valid_json(['device_id', 'user_id', 'device_model'])
     
-    device_name = data.get('device_name')
+    device_model = data.get('device_model')
     device_id = data.get('device_id')
     user_id = data.get('user_id')
     
     db.registered_devices.update_one(
         {"device_id": device_id}, 
-        {"$set": {"device_name": device_name, "user_id": user_id, "last_active": "..."}}, 
+        {"$set": {"device_model": device_model, "user_id": user_id}}, 
         upsert=True 
     )
     
@@ -164,9 +163,14 @@ def get_notifications():
     }
     
     notifications = list(db.notifications.find(query))
-    # Ensure response format matches SDK expectations
-    for note in notifications:
-        note['_id'] = str(note['_id'])
+    if notifications:
+        campaign_ids = list({n['campaign_id'] for n in notifications})
+        campaigns_map = {str(c['_id']): c for c in db.campaigns.find({"_id": {"$in": campaign_ids}})}
+        for note in notifications:
+            camp = campaigns_map.get(note['campaign_id'], {})
+            note['title'] = camp.get('name', '')
+            note['message'] = camp.get('message', '')
+            note['_id'] = str(note['_id'])
     
     logger.info(f"Retrieved {len(notifications)} unread notifications for user_id={user_id}")
     
@@ -247,7 +251,8 @@ def report_crash():
     db.crash_reports.insert_one({
         "_id": crash_id,
         "user_id": user_id,
-        "crash_details": crash_details
+        "crash_details": crash_details,
+        "created_at": datetime.datetime.utcnow()
     })
     
     logger.error(f"Crash reported by user_id={user_id}, crash_id={crash_id}")
@@ -311,8 +316,8 @@ def interact_with_notification(id):
     if not id or not id.strip():
         abort(make_response(jsonify({"error": "Invalid input, notification ID is required in the path"}), 400))
     
-    update_data = {"status": "read"}
-    
+    update_data = {"status": "read", "expires_at": datetime.datetime.utcnow() + datetime.timedelta(days=90)}
+
     if action == "clicked":
         update_data["clicked"] = True
         
@@ -395,14 +400,12 @@ def create_campaign():
     name = data.get('name')
     message = data.get('message')
     status = data.get('status') if data.get('status') else "draft"
-    position = data.get('position') if data.get('position') else "center"
-    
+
     campaign_doc = {
         "_id": uuid.uuid4().hex,
         "name": name,
         "message": message,
-        "status": status,
-        "position": position
+        "status": status
     }
     
     db.campaigns.insert_one(campaign_doc)
@@ -642,10 +645,17 @@ def get_dashboard_stats():
     """
     db = _get_db()
 
-    total_notifications_sent = db.notifications.count_documents({})
+    notif_agg = list(db.notifications.aggregate([{"$group": {
+        "_id": None,
+        "total": {"$sum": 1},
+        "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
+        "clicked": {"$sum": {"$cond": ["$clicked", 1, 0]}}
+    }}]))
+    ns = notif_agg[0] if notif_agg else {"total": 0, "opened": 0, "clicked": 0}
+    total_notifications_sent = ns["total"]
+    total_opened = ns["opened"]
+    total_clicked = ns["clicked"]
     total_active_campaigns = db.campaigns.count_documents({"status": "active"})
-    total_opened = db.notifications.count_documents({"status": "read"})
-    total_clicked = db.notifications.count_documents({"clicked": True})
 
     open_rate = round((total_opened / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
     click_rate = round((total_clicked / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
