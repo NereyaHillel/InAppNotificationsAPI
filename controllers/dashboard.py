@@ -11,3 +11,13 @@ def dashboard():
 def campaigns():
     """Render the campaigns management page"""
     return render_template('campaigns.html')
+
+@dashboard_bp.route('/Audience', methods=['GET'])
+def audience():
+    """Render the audience overview page"""
+    return render_template('audience.html')
+
+@dashboard_bp.route('/Settings', methods=['GET'])
+def settings():
+    """Render the settings page"""
+    return render_template('settings.html')

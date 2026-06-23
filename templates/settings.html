@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <style>
+        a.nav-item, a.nav-item:link, a.nav-item:visited, a.nav-item:hover, a.nav-item:active, a.nav-item:focus { text-decoration: none !important; }
+    </style>
+</head>
+<body class="admin-page page-settings">
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-cube"></i> SDK
+        </div>
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-chart-pie"></i> Statistics</a></li>
+            <li><a href="/Campaigns" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-layer-group"></i> Campaigns</a></li>
+            <li><a href="/Audience" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-bullhorn"></i> Audience</a></li>
+            <li><a href="/Settings" class="nav-item active" style="text-decoration:none"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-regular fa-circle-user"></i>
+            <i class="fa-solid fa-gear"></i>
+        </header>
+
+        <section class="hero-card">
+            <div class="page-title">Settings</div>
+            <div class="page-description">Centralize SDK defaults, delivery behavior, and team-facing safeguards so campaign operators can work from one clean control surface.</div>
+            <div class="status-banner">
+                <i class="fa-solid fa-shield-heart"></i>
+                Default delivery profile is healthy. Last configuration sync completed 8 minutes ago.
+            </div>
+        </section>
+
+        <section class="settings-grid">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Workspace preferences</div>
+                    <div class="section-subtitle">These controls define the default behavior for newly created in-app campaigns.</div>
+                </div>
+
+                <form>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="workspace-name">Workspace name</label>
+                            <input id="workspace-name" type="text" value="SDK Production" />
+                        </div>
+                        <div class="input-group">
+                            <label for="default-position">Default position</label>
+                            <select id="default-position">
+                                <option selected>Center</option>
+                                <option>Top</option>
+                                <option>Bottom</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="throttle-window">Throttle window</label>
+                            <input id="throttle-window" type="text" value="15 minutes" />
+                        </div>
+                        <div class="input-group">
+                            <label for="fallback-status">New campaign state</label>
+                            <select id="fallback-status">
+                                <option selected>Draft</option>
+                                <option>Active</option>
+                                <option>Paused</option>
+                            </select>
+                        </div>
+                        <div class="input-group full">
+                            <label for="workspace-note">Operator note</label>
+                            <textarea id="workspace-note">Keep onboarding campaigns centered and reserve top banners for urgent product notices.</textarea>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button type="button" class="button secondary">Discard</button>
+                        <button type="submit" class="button primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Delivery controls</div>
+                    <div class="section-subtitle">Guardrails for campaign frequency, diagnostics, and test behavior.</div>
+                </div>
+
+                <div class="toggle-list">
+                    <div class="toggle-card">
+                        <div>
+                            <strong>Quiet hours protection</strong>
+                            <span>Delay non-critical notifications during local night-time hours.</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-card">
+                        <div>
+                            <strong>Auto-create test payloads</strong>
+                            <span>Generate a preview-safe test notification when a campaign enters review.</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-card">
+                        <div>
+                            <strong>Crash diagnostics</strong>
+                            <span>Capture SDK crash reports with enriched notification context for triage.</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-grid">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Environment readiness</div>
+                    <div class="section-subtitle">Operational notes that keep delivery quality consistent across releases.</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-title">Primary environment</div>
+                    <div class="info-card-copy">Production notifications route through the default SDK project. Use draft status as the release gate for any new targeting logic.</div>
+                    <div class="info-metric">
+                        <span>Connected devices</span>
+                        <strong>24,118</strong>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-title">Fallback delivery policy</div>
+                    <div class="info-card-copy">If a device cannot receive an in-app placement, the event remains queued and retried on the next valid app session.</div>
+                    <div class="info-metric">
+                        <span>Retry window</span>
+                        <strong>48 hours</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">Admin reminders</div>
+                    <div class="section-subtitle">Keep these visible for the team managing notifications.</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-title">Launch checklist</div>
+                    <div class="info-card-copy">Verify segment size, preview the message on a test user, confirm quiet hours behavior, then activate from the campaigns page.</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-title">Analytics discipline</div>
+                    <div class="info-card-copy">Use a single success metric per campaign. Mixing adoption and retention goals in the same message makes dashboard trends harder to interpret.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

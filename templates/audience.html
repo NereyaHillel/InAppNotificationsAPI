@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Audience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <style>
+        a.nav-item, a.nav-item:link, a.nav-item:visited, a.nav-item:hover, a.nav-item:active, a.nav-item:focus { text-decoration: none !important; }
+    </style>
+</head>
+<body class="admin-page page-audience">
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-cube"></i> SDK
+        </div>
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-chart-pie"></i> Statistics</a></li>
+            <li><a href="/Campaigns" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-layer-group"></i> Campaigns</a></li>
+            <li><a href="/Audience" class="nav-item active" style="text-decoration:none"><i class="fa-solid fa-bullhorn"></i> Audience</a></li>
+            <li><a href="/Settings" class="nav-item" style="text-decoration:none"><i class="fa-solid fa-gear"></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-regular fa-circle-user"></i>
+            <i class="fa-solid fa-gear"></i>
+        </header>
+
+        <section class="hero-grid">
+            <div class="hero-card">
+                <div class="page-title">Audience</div>
+                <div class="page-description">Track which user groups are reachable, which segments are growing, and where delivery depth is strongest before launching the next in-app campaign.</div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Reachable users</div>
+                        <div class="kpi-value">18.4K</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Opted-in devices</div>
+                        <div class="kpi-value">24.1K</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">New this week</div>
+                        <div class="kpi-value">+1.2K</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <div class="section-title">Top segments</div>
+                <div class="section-subtitle">Use these groups to prioritize activation campaigns and onboarding nudges.</div>
+
+                <div class="segment-stack" style="margin-top: 18px;">
+                    <div class="segment-chip">
+                        <div>
+                            <strong>High intent returners</strong>
+                            <span>Users with 3+ sessions in 7 days</span>
+                        </div>
+                        <div class="pill">6.8K</div>
+                    </div>
+                    <div class="segment-chip">
+                        <div>
+                            <strong>Trial users</strong>
+                            <span>New signups still in activation flow</span>
+                        </div>
+                        <div class="pill">4.2K</div>
+                    </div>
+                    <div class="segment-chip">
+                        <div>
+                            <strong>Dormant accounts</strong>
+                            <span>No interaction in the last 14 days</span>
+                        </div>
+                        <div class="pill">2.1K</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="audience-grid">
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Audience breakdown</div>
+                        <div class="section-subtitle">Snapshot of the most useful cohorts for notification targeting.</div>
+                    </div>
+                    <button type="button" class="button secondary">Export CSV</button>
+                </div>
+
+                <div class="table-shell">
+                    <div class="table-header">
+                        <div>Segment</div>
+                        <div>Users</div>
+                        <div>Reach rate</div>
+                        <div>Trend</div>
+                    </div>
+                    <div class="table-row">
+                        <div>Power users</div>
+                        <div>7,420</div>
+                        <div>92%</div>
+                        <div>+8.4%</div>
+                    </div>
+                    <div class="table-row">
+                        <div>Recently onboarded</div>
+                        <div>3,180</div>
+                        <div>87%</div>
+                        <div>+12.1%</div>
+                    </div>
+                    <div class="table-row">
+                        <div>Promo clickers</div>
+                        <div>1,960</div>
+                        <div>79%</div>
+                        <div>+4.7%</div>
+                    </div>
+                    <div class="table-row">
+                        <div>At-risk churn</div>
+                        <div>2,540</div>
+                        <div>65%</div>
+                        <div>-2.3%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Activation ideas</div>
+                        <div class="section-subtitle">Suggested messaging angles based on current audience shape.</div>
+                    </div>
+                    <button type="button" class="button primary">Create Segment</button>
+                </div>
+
+                <div class="mini-card-list">
+                    <div class="mini-card">
+                        <div class="mini-card-title">Re-engage dormant users</div>
+                        <div class="mini-card-copy">Offer a return incentive to accounts inactive for two weeks but previously exposed to active campaigns.</div>
+                        <div class="mini-card-meta">
+                            <span>Potential reach</span>
+                            <strong>2.1K users</strong>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-title">Upsell power users</div>
+                        <div class="mini-card-copy">Promote advanced features to highly engaged users with strong open and click history.</div>
+                        <div class="mini-card-meta">
+                            <span>Potential reach</span>
+                            <strong>6.8K users</strong>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-title">Speed up onboarding</div>
+                        <div class="mini-card-copy">Use centered prompts for first-week users that have not completed the main activation milestone.</div>
+                        <div class="mini-card-meta">
+                            <span>Potential reach</span>
+                            <strong>3.2K users</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
