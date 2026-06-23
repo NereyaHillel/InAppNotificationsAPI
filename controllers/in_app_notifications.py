@@ -170,6 +170,12 @@ def get_notifications():
             camp = campaigns_map.get(note['campaign_id'], {})
             note['title'] = camp.get('name', '')
             note['message'] = camp.get('message', '')
+            note['position'] = camp.get('position')
+            note['image_url'] = camp.get('image_url')
+            note['link'] = camp.get('link')
+            note['btn_positive'] = camp.get('btn_positive')
+            note['btn_negative'] = camp.get('btn_negative')
+            note['btn_neutral'] = camp.get('btn_neutral')
             note['_id'] = str(note['_id'])
     
     logger.info(f"Retrieved {len(notifications)} unread notifications for user_id={user_id}")
@@ -371,8 +377,6 @@ def create_campaign():
           required:
             - name
             - message
-            - status
-            - position (e.g., top, bottom, center)
           properties:
             name:
               type: string
@@ -382,10 +386,26 @@ def create_campaign():
               description: Message content for the campaign
             status:
               type: string
-              description: Status of the campaign (e.g., active, paused)
+              description: Status of the campaign (e.g., active, draft, paused)
             position:
               type: string
-              description: Position of the campaign (e.g., top, bottom, center)
+              description: SDUI display position (e.g., TOP, BOTTOM, CENTER)
+              example: TOP
+            image_url:
+              type: string
+              description: Optional URL of the image to display in the notification
+            link:
+              type: string
+              description: Optional deep link or web URL to open on interaction
+            btn_positive:
+              type: string
+              description: Optional label for the positive action button
+            btn_negative:
+              type: string
+              description: Optional label for the negative action button
+            btn_neutral:
+              type: string
+              description: Optional label for the neutral action button
     responses:
         200:
             description: Campaign created successfully
@@ -405,7 +425,13 @@ def create_campaign():
         "_id": uuid.uuid4().hex,
         "name": name,
         "message": message,
-        "status": status
+        "status": status,
+        "position": data.get('position') or None,
+        "image_url": data.get('image_url') or None,
+        "link": data.get('link') or None,
+        "btn_positive": data.get('btn_positive') or None,
+        "btn_negative": data.get('btn_negative') or None,
+        "btn_neutral": data.get('btn_neutral') or None,
     }
     
     db.campaigns.insert_one(campaign_doc)

@@ -39,7 +39,8 @@
 
 
             <form id="campaign-form" class="form-grid">
-                <div class="input-group">
+                <!-- Row 1: Name · Status · Position -->
+                <div class="input-group" style="grid-column: span 2;">
                     <label for="campaign-name">Name</label>
                     <input id="campaign-name" type="text" placeholder="Campaign name" required />
                 </div>
@@ -52,12 +53,47 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>&nbsp;</label>
-                    <button type="submit" class="button primary">Create Campaign</button>
+                    <label for="campaign-position">Position</label>
+                    <select id="campaign-position">
+                        <option value="">— None —</option>
+                        <option value="TOP">TOP</option>
+                        <option value="CENTER">CENTER</option>
+                        <option value="BOTTOM">BOTTOM</option>
+                    </select>
                 </div>
+
+                <!-- Row 2: Message -->
                 <div class="input-group" style="grid-column: span 4;">
                     <label for="campaign-message">Message</label>
                     <textarea id="campaign-message" placeholder="Write the campaign message"></textarea>
+                </div>
+
+                <!-- Row 3: Image URL · Deep Link -->
+                <div class="input-group" style="grid-column: span 2;">
+                    <label for="campaign-image-url">Image URL <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
+                    <input id="campaign-image-url" type="url" placeholder="https://example.com/image.png" />
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label for="campaign-link">Link / Deep Link <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
+                    <input id="campaign-link" type="text" placeholder="app://screen or https://…" />
+                </div>
+
+                <!-- Row 4: Buttons · Submit -->
+                <div class="input-group">
+                    <label for="campaign-btn-positive">Positive Button <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
+                    <input id="campaign-btn-positive" type="text" placeholder="e.g. Open" />
+                </div>
+                <div class="input-group">
+                    <label for="campaign-btn-negative">Negative Button <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
+                    <input id="campaign-btn-negative" type="text" placeholder="e.g. Dismiss" />
+                </div>
+                <div class="input-group">
+                    <label for="campaign-btn-neutral">Neutral Button <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
+                    <input id="campaign-btn-neutral" type="text" placeholder="e.g. Later" />
+                </div>
+                <div class="input-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="button primary">Create Campaign</button>
                 </div>
             </form>
         </div>
@@ -186,9 +222,17 @@
 
         document.getElementById('campaign-form')?.addEventListener('submit', async event => {
             event.preventDefault();
-            const name = document.getElementById('campaign-name').value.trim();
+            const name    = document.getElementById('campaign-name').value.trim();
             const message = document.getElementById('campaign-message').value.trim();
-            const status = document.getElementById('campaign-status').value;
+            const status  = document.getElementById('campaign-status').value;
+
+            // SDUI fields — send only when non-empty so the API stores null for absent ones
+            const position    = document.getElementById('campaign-position').value.trim() || undefined;
+            const image_url   = document.getElementById('campaign-image-url').value.trim() || undefined;
+            const link        = document.getElementById('campaign-link').value.trim() || undefined;
+            const btn_positive = document.getElementById('campaign-btn-positive').value.trim() || undefined;
+            const btn_negative = document.getElementById('campaign-btn-negative').value.trim() || undefined;
+            const btn_neutral  = document.getElementById('campaign-btn-neutral').value.trim() || undefined;
 
             if (!name || !message) {
                 setMessage('Name and message are required.', 'error');
@@ -199,7 +243,7 @@
                 const response = await fetch('/api/v1/admin/campaigns', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, message, status })
+                    body: JSON.stringify({ name, message, status, position, image_url, link, btn_positive, btn_negative, btn_neutral })
                 });
                 if (!response.ok) {
                     const text = await response.text();
