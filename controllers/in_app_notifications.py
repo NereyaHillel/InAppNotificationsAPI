@@ -3,6 +3,7 @@ import logging
 import datetime
 from flask import Blueprint, request, jsonify, abort, make_response
 from DB_Connector import DBConnector
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -164,10 +165,33 @@ def get_notifications():
     
     notifications = list(db.notifications.find(query))
     if notifications:
+        # Extract campaign IDs and convert to ObjectId for proper MongoDB lookup
         campaign_ids = list({n['campaign_id'] for n in notifications})
-        campaigns_map = {str(c['_id']): c for c in db.campaigns.find({"_id": {"$in": campaign_ids}})}
+        
+        # Try to convert campaign_ids to ObjectId, but handle both string and ObjectId formats
+        campaign_object_ids = []
+        for cid in campaign_ids:
+            try:
+                if isinstance(cid, str):
+                    campaign_object_ids.append(ObjectId(cid))
+                else:
+                    campaign_object_ids.append(cid)
+            except:
+                campaign_object_ids.append(cid)
+        
+        # Query campaigns by ObjectId
+        campaigns = list(db.campaigns.find({"_id": {"$in": campaign_object_ids}}))
+        campaigns_map = {str(c['_id']): c for c in campaigns}
+        
+        logger.info(f"Found {len(campaigns)} campaigns for {len(notifications)} notifications")
+        logger.debug(f"Campaign IDs: {campaign_ids}")
+        logger.debug(f"Campaigns map keys: {list(campaigns_map.keys())}")
+        
         for note in notifications:
             camp = campaigns_map.get(note['campaign_id'], {})
+            if not camp:
+                logger.warning(f"Campaign not found for notification {note['_id']}, campaign_id: {note['campaign_id']}")
+            
             note['title'] = camp.get('name', '')
             note['message'] = camp.get('message', '')
             note['position'] = camp.get('position')
@@ -177,6 +201,9 @@ def get_notifications():
             note['btn_negative'] = camp.get('btn_negative')
             note['btn_neutral'] = camp.get('btn_neutral')
             note['_id'] = str(note['_id'])
+            
+            # Debug log
+            logger.debug(f"Notification {note['_id']}: position={note.get('position')}, btn_positive={note.get('btn_positive')}")
     
     logger.info(f"Retrieved {len(notifications)} unread notifications for user_id={user_id}")
     
