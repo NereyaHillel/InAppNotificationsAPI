@@ -47,11 +47,9 @@ def _distribute_campaigns(db, campaigns, user_ids):
         
     c_ids = [str(c['_id']) for c in campaigns]
     
-    # 1. Fetch all existing UNREAD pairs in one single network call.
-    # Excluding "read" notifications ensures a new device registration re-delivers
-    # campaigns that were already dismissed/read on a previous device or session.
+    # 1. Fetch all existing pairs in one single network call
     existing_cursor = db.notifications.find(
-        {"campaign_id": {"$in": c_ids}, "user_id": {"$in": user_ids}, "status": {"$ne": "read"}},
+        {"campaign_id": {"$in": c_ids}, "user_id": {"$in": user_ids}},
         {"campaign_id": 1, "user_id": 1, "_id": 0}
     )
     existing_pairs = {(doc["campaign_id"], doc["user_id"]) for doc in existing_cursor}
