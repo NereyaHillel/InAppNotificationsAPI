@@ -403,14 +403,13 @@ def create_campaign():
           type: object
           required:
             - name
-            - message
           properties:
             name:
               type: string
               description: Name of the campaign
             message:
               type: string
-              description: Message content for the campaign
+              description: Message content for the campaign (optional)
             status:
               type: string
               description: Status of the campaign (e.g., active, draft, paused)
@@ -442,7 +441,7 @@ def create_campaign():
             description: Internal server error
     """
     db = _get_db()
-    data = _get_valid_json(['name', 'message'])
+    data = _get_valid_json(['name'])
     
     name = data.get('name')
     message = data.get('message')
