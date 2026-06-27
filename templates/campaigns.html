@@ -64,7 +64,7 @@
 
                 <!-- Row 2: Message -->
                 <div class="input-group" style="grid-column: span 4;">
-                    <label for="campaign-message">Message</label>
+                    <label for="campaign-message">Message <span style="color:var(--text-gray);font-weight:400">(optional)</span></label>
                     <textarea id="campaign-message" placeholder="Write the campaign message"></textarea>
                 </div>
 
@@ -234,8 +234,8 @@
             const btn_negative = document.getElementById('campaign-btn-negative').value.trim() || undefined;
             const btn_neutral  = document.getElementById('campaign-btn-neutral').value.trim() || undefined;
 
-            if (!name || !message) {
-                setMessage('Name and message are required.', 'error');
+            if (!name) {
+                setMessage('Name is required.', 'error');
                 return;
             }
 
