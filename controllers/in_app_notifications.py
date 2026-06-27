@@ -498,6 +498,9 @@ def delete_campaign(campaign_id):
     result = db.campaigns.delete_one({"_id": campaign_id})
     if result.deleted_count == 0:
         abort(make_response(jsonify({"error": "Campaign not found"}), 404))
+
+    # Cascade-delete all notifications that belong to this campaign
+    db.notifications.delete_many({"campaign_id": campaign_id})
     
     return jsonify({"message": "Campaign deleted successfully", "campaign_id": campaign_id}), 200
 
@@ -697,12 +700,21 @@ def get_dashboard_stats():
     """
     db = _get_db()
 
-    notif_agg = list(db.notifications.aggregate([{"$group": {
-        "_id": None,
-        "total": {"$sum": 1},
-        "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
-        "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}}
-    }}]))
+    # Fetch all campaigns first so every aggregation is scoped to existing ones only.
+    # This prevents orphaned notifications (from previously deleted campaigns) from
+    # inflating the global KPIs and causing mismatches with the per-campaign table.
+    campaigns = list(db.campaigns.find())
+    existing_campaign_ids = [str(c["_id"]) for c in campaigns]
+
+    notif_agg = list(db.notifications.aggregate([
+        {"$match": {"campaign_id": {"$in": existing_campaign_ids}}},
+        {"$group": {
+            "_id": None,
+            "total": {"$sum": 1},
+            "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
+            "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}}
+        }}
+    ]))
     ns = notif_agg[0] if notif_agg else {"total": 0, "opened": 0, "clicked": 0}
     total_notifications_sent = ns["total"]
     total_opened = ns["opened"]
@@ -712,20 +724,19 @@ def get_dashboard_stats():
     open_rate = round((total_opened / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
     click_rate = round((total_clicked / total_notifications_sent) * 100, 1) if total_notifications_sent else 0.0
 
+    # Per-campaign aggregation — no $limit so every campaign gets accurate stats
     pipeline = [
+        {"$match": {"campaign_id": {"$in": existing_campaign_ids}}},
         {"$group": {
             "_id": "$campaign_id",
             "sent": {"$sum": 1},
             "opened": {"$sum": {"$cond": [{"$eq": ["$status", "read"]}, 1, 0]}},
             "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}}
-        }},
-        {"$sort": {"sent": -1}},
-        {"$limit": 4}
+        }}
     ]
 
     campaign_stats = list(db.notifications.aggregate(pipeline))
     stats_by_campaign = {stat["_id"]: stat for stat in campaign_stats}
-    campaigns = list(db.campaigns.find())
 
     campaign_summary = []
     chart_labels = []
